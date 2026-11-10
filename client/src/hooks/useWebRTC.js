@@ -46,9 +46,7 @@ const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
       if (audioTrack) {
         audioTrack.enabled = newState;
       }
-      toast(newState ? "Microphone turned on" : "Microphone turned off", {
-        icon: newState ? "🎙️" : "🔇",
-      });
+      toast(newState ? "Microphone turned on" : "Microphone turned off")
     }
   };
 
@@ -60,9 +58,7 @@ const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
       if (videoTrack) {
         videoTrack.enabled = newState;
       }
-      toast(newState ? "Camera turned on" : "Camera turned off", {
-        icon: newState ? "📹" : "📷",
-      });
+      toast(newState ? "Camera turned on" : "Camera turned off")
     }
   };
 

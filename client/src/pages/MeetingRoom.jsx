@@ -8,6 +8,7 @@ import ChatPanel from "../components/meeting/ChatPanel";
 import { useChat } from "../hooks/useChat";
 import ParticipantList from "../components/meeting/ParticipantList";
 import ControlBar from "../components/meeting/ControlBar";
+import { toast } from "react-hot-toast";
 
 const MeetingRoom = () => {
   const { meetingId } = useParams();
@@ -35,9 +36,16 @@ const MeetingRoom = () => {
 
   const isHost = true;
 
-  const handleLeave = () => {};
+  const handleLeave = () => {
+    toast.success("You left the meeting.");
+    navigate("/dashboard");
+  };
 
-  const handleEndMeeting = () => {};
+  const handleEndMeeting = () => {
+    endMeeting();
+    toast.success("Meeting ended successfully.");
+    navigate("/dashboard");
+  };
 
   return (
     <div className="h-screen w-screen bg-slate-100 text-slate-900 flex flex-col overflow-hidden relative font-sans">
