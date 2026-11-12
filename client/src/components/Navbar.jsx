@@ -59,7 +59,7 @@ const Navbar = () => {
             <div className="flex items-center gap-3 rounded-full bg-slate-100/80 pl-4 pr-1.5 py-1.5">
   <div className="hidden sm:block text-right leading-tight">
     <p className="text-[11px] text-slate-500">Welcome back</p>
-    <p className="text-sm font-semibold text-slate-900 max-w-[120px] truncate">
+    <p className="text-sm font-semibold text-slate-900 max-w-30 truncate">
       {userName}
     </p>
   </div>
