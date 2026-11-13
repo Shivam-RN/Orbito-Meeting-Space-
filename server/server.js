@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { initDB } from "./config/db.js";
 import { clerkMiddleware } from '@clerk/express'
 import { handleClerkWebhook } from "./controllers/webhookController.js";
+import meetingRouter from "./routes/meetingRoutes.js";
 
 const app = express()
 
@@ -21,6 +22,8 @@ app.use(clerkMiddleware())
 app.get('/', (req,res) => {
     res.send('Hello from server')
 })
+
+app.use("/api/meetings", meetingRouter)
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000')
