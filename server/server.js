@@ -21,6 +21,7 @@ app.use(cors({origin: allowedOrigins,credentials: true}))
 app.use(cookieParser())
 
 app.use("/api/clerk", express.raw({type: "application/json" }), handleClerkWebhook)
+app.use(express.json());
 app.use(clerkMiddleware())
 
 app.get('/', (req,res) => {

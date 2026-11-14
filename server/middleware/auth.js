@@ -11,5 +11,15 @@ export const protect = async (req, res, next) =>{
 
     req.user = {id: userId};
 
+    const userActivePlan = auth.has({plan: "premium"}) ? "premium" : "free";
+
+    const users = await sql`SELECT name, plan FROM users WHERE id = ${userId}`
+    const userPlan = users[0]?.plan;
+
+    if(userActivePlan !== userPlan){
+        await sql`UPDATE users SET plan = ${userActivePlan} WHERE id = ${userId}`
+    }
+
+
     next()
 }

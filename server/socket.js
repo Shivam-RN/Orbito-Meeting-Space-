@@ -143,26 +143,63 @@ export function setupSocketIO(io) {
 
         // Chat message event -> persist to DB & broadcast
         socket.on("send-message", async ({ roomId, message }) => {
-            try {
-                const meetings = await sql`SELECT id, status FROM meetings WHERE meeting_id = ${roomId}`;
+    try {
+        console.log("1. Received message:", {
+            roomId,
+            text: message?.text,
+            fileName: message?.file?.name,
+            fileType: message?.file?.type,
+            fileSize: message?.file?.size,
+        });
 
-                if (meetings.length > 0 && meetings[0].status !== "ended") {
-                    const meetingId = meetings[0].id;
-                    const senderId = message.senderId || null;
+        const meetings = await sql`
+            SELECT id, status
+            FROM meetings
+            WHERE meeting_id = ${roomId}
+        `;
 
-                    await sql`
-                    INSERT INTO meeting_messages (meeting_id, sender_id, sender_name, text, file_attachment, timestamp)
-                        VALUES (${meetingId}, ${senderId}, ${message.senderName || "Anonymous"}, ${message.text}, ${message.file ? JSON.stringify(message.file) : null}, NOW())`;
+        if (!meetings.length || meetings[0].status === "ended") {
+            console.log("2. Meeting not found or already ended");
+            return;
+        }
 
-                    io.in(roomId).emit("receive-message", {
-                        ...message,
-                        senderSocketId: socket.id,
-                    })
-                }
-            } catch (err) {
-                console.error("Error saving chat message to DB:", err);
-            }
-        })
+        const meetingId = meetings[0].id;
+        const senderId = message.senderId || null;
+
+        console.log("2. Meeting found. Saving message...");
+
+        await sql`
+            INSERT INTO meeting_messages (
+                meeting_id,
+                sender_id,
+                sender_name,
+                text,
+                file_attachment,
+                timestamp
+            )
+            VALUES (
+                ${meetingId},
+                ${senderId},
+                ${message.senderName || "Anonymous"},
+                ${message.text || ""},
+                ${message.file ? JSON.stringify(message.file) : null},
+                NOW()
+            )
+        `;
+
+        console.log("3. Message saved successfully");
+
+        io.in(roomId).emit("receive-message", {
+            ...message,
+            senderSocketId: socket.id,
+        });
+
+        console.log("4. Message broadcasted successfully");
+
+    } catch (err) {
+        console.error("Error saving chat message to DB:", err);
+    }
+});
 
         // Host explicitly ends meeting for all via End Meeting button
 

@@ -5,20 +5,19 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { dummyUser, dummyStats } from "../assets/asset";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { useUser } from "@clerk/react";
+import { useAuth, useUser } from "@clerk/react";
+import api from "../config/api.js";
 
 const Dashboard = () => {
-  const {user} = useUser();
+  const { user } = useUser();
   const userName = user.fullName;
   const userEmail = user.primaryEmailAddress.emailAddress;
-
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-
-  const stats = dummyStats;
+  const [stats, setStats] = useState(null);
   const navigate = useNavigate();
 
   const [joinId, setJoinId] = useState("");
@@ -29,37 +28,64 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!isLoaded || !isSignedIn) return;
+
+      try {
+        const token = await getToken();
+        const { data } = await api.get("/api/meetings/stats", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setStats(data);
+      } catch (error) {
+        toast.error(error.response?.data?.error || error.message);
+      }
+    };
+    fetchStats();
+  }, [isLoaded, isSignedIn, getToken]);
+
   const handleCreateMeeting = async () => {
+    if (!isLoaded || !isSignedIn) return;
     setIsCreating(true);
 
-    const chars = "abcdefghijklmnopqrstuvwxyz";
+    try {
+      const token = await getToken();
+      const res = await api.post(
+        "/api/meetings",
+        { title: `${userName}'s Meeting` },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
-    const seg = () =>
-      Array.from(
-        { length: 3 },
-        () => chars[Math.floor(Math.random() * chars.length)],
-      ).join("");
-
-    const newMeetingId = `${seg()}-${seg()}-${seg()}`;
-
-    setTimeout(() => {
+      const meetingId = res.data.meeting.meetingId;
+      toast.success("Meeting created!");
+      navigate(`/meeting/${meetingId}`);
+    } catch (error) {
+      toast.error(error.response?.data?.error || error.message);
+    } finally {
       setIsCreating(false);
-      toast.success("Meeting created successfully!");
-      navigate(`/meeting/${newMeetingId}`);
-    }, 1000);
+    }
   };
 
   const handleJoinMeeting = async (e) => {
     e.preventDefault();
-
     const cleanId = joinId.trim();
-
     if (!/^[a-z]{3}(?:-[a-z]{3}){2}$/.test(cleanId)) {
       toast.error("Please enter a valid Meeting ID");
       return;
     }
 
-    navigate(`/meeting/${encodeURIComponent(cleanId)}`);
+    try {
+      const token = await getToken();
+      await api.get(`/api/meetings/${cleanId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      navigate(`/meeting/${cleanId}`);
+    } catch (error) {
+      toast.error("Meeting not found. Check the ID and try again.");
+    }
   };
 
   return (
