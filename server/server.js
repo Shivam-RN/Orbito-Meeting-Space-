@@ -6,8 +6,12 @@ import { initDB } from "./config/db.js";
 import { clerkMiddleware } from '@clerk/express'
 import { handleClerkWebhook } from "./controllers/webhookController.js";
 import meetingRouter from "./routes/meetingRoutes.js";
+import http from 'http'
+import { Server } from "socket.io";
+import { setupSocketIO } from "./socket.js";
 
 const app = express()
+const server = http.createServer(app)
 
 await initDB()
 
@@ -25,6 +29,17 @@ app.get('/', (req,res) => {
 
 app.use("/api/meetings", meetingRouter)
 
-app.listen(3000, () => {
+const io = new Server(server, {
+    cors: {origin: allowedOrigins, credentials: true}
+})
+
+setupSocketIO(io)
+
+app.use((err, _req, res, _next)=>{
+    console.error(`[Error] ${err.message}`);
+    res.status(500).json({ error: "Internal server error" });
+})
+
+server.listen(3000, () => {
     console.log('Server is running on port 3000')
 } )  
