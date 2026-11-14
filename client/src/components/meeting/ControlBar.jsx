@@ -6,14 +6,12 @@ const ControlBar = ({roomId, audioEnabled, videoEnabled, onToggleAudio, onToggle
 
     const [copied, setCopied] = useState(false)
 
-    const copyMeetingId = () => {
-    const meetingLink = `${window.location.origin}/meeting/${roomId}`;
-
-    navigator.clipboard.writeText(meetingLink);
-    setCopied(true);
-    toast.success("Meeting link copied!");
-    setTimeout(() => setCopied(false), 2000);
-}
+    const copyMeetingId = ()=>{
+        navigator.clipboard.writeText(roomId)
+        setCopied(true)
+        toast.success("Meeting link copied!")
+        setTimeout(()=>setCopied(false), 2000)
+    }
 
   return (
     <footer className="w-full bg-white/90 backdrop-blur-md border-t border-slate-200/80 px-6 py-4 flex items-center justify-between z-40 shadow-lg shadow-slate-200/50">
